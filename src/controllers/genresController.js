@@ -1,18 +1,22 @@
+const { Op } = require('sequelize');
 const db = require("../database/models");
 const sequelize = db.sequelize;
 
 const genresController = {
   list: async (req, res) => {
       try {
+
         let {order = 'id'} = req.query;
         let orders = ['id','name', 'ranking'];
 
-        if(!orders.includes(req.query.order)){
-            throw new Error(`El campo ${order} no existe. Campos admitidoss: [name, ranking]`)
+        if(orders.includes(order)){
+          order = order ? order : 'id';
+        }else {
+            throw new Error(`El campo ${order} no existe. Campos admitidos: [name, ranking]`)
         }
 
           let genres = await db.Genre.findAll({
-            order : ['order'],
+            order : [order],
             attributes : {
                 exclude : ['created_at', 'updated_at']
             }
@@ -39,12 +43,13 @@ const genresController = {
   detail: async(req, res) => {
     try {
 
-        const {id} = req.params.id;
-        if (NaN(id)){
+        const {id} = req.params;
+
+        if (isNaN(id)){
           throw new Error('El ID debe ser un número')
         }
 
-        let genre = await db.Genre.findByPk(req.params.id, {
+        let genre = await db.Genre.findByPk(id, {
             attributes : {
                 exclude : ['created_at', 'updated_at']
             }
